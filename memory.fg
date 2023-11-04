@@ -4,12 +4,12 @@
 # Utility functions
 #==========================================
 
-def makeCardDeck():
+def makeCardDeck(p_numberOfCombination):
 	# Each card has a back and a face
-	js ():
+	js (p_numberOfCombination):
 		const cardDeck = []
 		const effects = []
-		for( let cardNum=1; cardNum<=8; cardNum++){
+		for( let cardNum=1; cardNum<=p_numberOfCombination; cardNum++){
 			let effect
 			while (true) {
 				effect = Math.floor(Math.random() * 9) + 1
@@ -68,12 +68,12 @@ def awaitClickOnNewButton(p_label):
 # Game Course
 #==========================================
 
-def gameCourse(p_SIGNAL_memorizeDuration):
+def gameCourse(p_numberOfCombination, p_SIGNAL_memorizeDuration, p_SIGNAL_clickOnCard):
 
 	# Prepare game table
 	#=======================
 
-	var cardDeck := makeCardDeck()
+	var cardDeck := makeCardDeck(p_numberOfCombination)
 
 	# shuffle deck
 	shuffleCards(cardDeck)
@@ -94,6 +94,7 @@ def gameCourse(p_SIGNAL_memorizeDuration):
 			# In the following code, anyCard is only a single card
 			select:
 				awaitClickBeep(anyCard.cardElement)
+				bip(p_SIGNAL_clickOnCard)
 			do:
 				# now, anyCard can only be a clicked card
 				
@@ -122,11 +123,15 @@ def gameCourse(p_SIGNAL_memorizeDuration):
 # Main
 #==========================================
 
+var SIGNAL_clickOnCard
+
+var LABEL_ChangeDistinctCombination
 var LABEL_gameCourse
 
 var congratMessage
 var restartButton
 
+var numberOfDistinctCombination
 var SIGNAL_numberOfSeconds
 
 parallel:
@@ -136,19 +141,31 @@ parallel:
 		removeElt(congratMessage)
 		
 		# The main part of the game
-		gameCourse('SIGNAL_numberOfSeconds')
-		congratMessage := displayNewMessage('Congratulations, you have found all related cards!')
+		if not isEmpty(numberOfDistinctCombination):
+			gameCourse(numberOfDistinctCombination, 'SIGNAL_numberOfSeconds', 'SIGNAL_clickOnCard')
+			congratMessage := displayNewMessage('Congratulations, you have found all related cards!')
 		
 		awaitForever()
 		
 	# Change of parameters
 	#---------------------
+	while true: @LABEL_ChangeDistinctCombination
+		numberOfDistinctCombination := awaitSelectedOptionBeep('#distinctNumber')
+		restart LABEL_gameCourse
+		
 	while true:
 		SIGNAL_numberOfSeconds := awaitSelectedOptionBeep('#memorizeDuration')
 		
 	# Restart management
 	#----------------------------------------------
 	while true:
-		removeElt(restartButton)
+		awaitBip SIGNAL_clickOnCard
+		
+		# As soon as a first card is clicked
+		pause LABEL_ChangeDistinctCombination
 		restartButton := awaitClickOnNewButton('Restart')
+		
+		# As soon as the restart button is clicked
+		removeElt(restartButton)
+		resume LABEL_ChangeDistinctCombination
 		restart LABEL_gameCourse
