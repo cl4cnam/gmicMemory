@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Memory</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/lib.css">
+		<link rel="stylesheet" href="memory.css">
+	</head>
+	<body>
+		<header>
+			<select id="langage">
+				<option selected>English</option>
+				<option>Français</option>
+			</select>
+		</header>
+		<h1>G'MIC Memory</h1>
+		<h2>Recognize G'MIC Effects</h2>
+		<p>Click 3 cards to reveal their faces.</p>
+		<p>If they do not match, you have <select id="memorizeDuration" disabled><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select> seconds to memorize.</p>
+		<p>If they match, you can continue immediately.</p>
+		<div id="gameTable"></div>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/libStd.fg" type="application/funcsug"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/libDOM.fg" type="application/funcsug"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/libDOMSVG.fg" type="application/funcsug"></script>
+		<script src="memory.fg" type="application/funcsug"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/parser.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/parserPy.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/interpreter.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug@b3f8fb8eafcc4dac5a72d87018c743db42437226/DOMloader.js"></script>
+	</body>
+</html>
+
