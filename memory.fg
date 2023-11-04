@@ -1,0 +1,154 @@
+#!syntax:pythonic
+
+#==========================================
+# Utility functions
+#==========================================
+
+def makeCardDeck():
+	# Each card has a back and a face
+	js ():
+		const cardDeck = []
+		const effects = []
+		for( let cardNum=1; cardNum<=8; cardNum++){
+			let effect
+			while (true) {
+				effect = Math.floor(Math.random() * 9) + 1
+				if (! effects.includes(effect)) {
+					effects.push(effect)
+					break
+				}
+			}
+			cardDeck.push({back : "cardBack.svg", face : "card"+ cardNum + "_" + effect + ".jpg", num : cardNum })
+			cardDeck.push({back : "cardBack.svg", face : "card0_" + effect + ".svg", num : cardNum })
+			cardDeck.push({back : "cardBack.svg", face : "card"+ cardNum + "_0.jpg", num : cardNum })
+		}
+		return cardDeck
+
+def shuffleCards(p_cardDeck):
+	# shuffle the deck
+	js (p_cardDeck):
+		//~ copied from https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+		for (let i = p_cardDeck.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[p_cardDeck[i], p_cardDeck[j]] = [p_cardDeck[j], p_cardDeck[i]];
+		}
+
+def distributeCards(p_cardDeck):
+	# place all the cards face downward onto the game table
+	js (p_cardDeck):
+		const gameTable = document.getElementById("gameTable");
+		gameTable.innerHTML = ''
+		gameTable.scrollIntoView()
+		for(let card of p_cardDeck){
+			const cardElement = document.createElement('img');
+			cardElement.src= "img/" + card.back
+			card.cardElement = cardElement
+			gameTable.appendChild(cardElement)
+		}
+
+def showFace(p_card):
+	js (p_card):
+		p_card.cardElement.src = "img/" + p_card.face
+
+def showBack(p_card):
+	js (p_card):
+		p_card.cardElement.src = "img/" + p_card.back
+
+def awaitClickOnNewButton(p_label):
+	var lButton := js (p_label):
+		const lElt = document.createElement('button')
+		lElt.innerHTML = p_label
+		document.body.appendChild(lElt)
+		//~ lElt.scrollIntoView()
+		return lElt
+	awaitClickBeep(lButton)
+	lButton
+
+#==========================================
+# Game Course
+#==========================================
+
+def gameCourse(p_SIGNAL_memorizeDuration):
+
+	# Prepare game table
+	#=======================
+
+	var cardDeck := makeCardDeck()
+
+	# shuffle deck
+	shuffleCards(cardDeck)
+
+	# place cards face downward onto the game table
+	distributeCards(cardDeck)
+
+	# Start of game
+	#=======================
+
+	# transform JavaScript Array into FuncSug "parallel list"
+	var allRemainingCards := listToPar(cardDeck)
+	# now, allRemainingCards is a "parallel list" of all cards placed on the table
+
+	while not isNovalue(allRemainingCards):
+		
+		var allClickedCards := parallel(for anyCard in allRemainingCards, select 3):
+			# In the following code, anyCard is only a single card
+			select:
+				awaitClickBeep(anyCard.cardElement)
+			do:
+				# now, anyCard can only be a clicked card
+				
+				# show the face of the clicked card
+				showFace(anyCard)
+				# return the clicked card (which is then "union-ed" to allClickedCards by "allClickedCards := parallelOfSelected...")
+				anyCard
+
+		# Compare visible faces
+		#----------------------
+		if allEqual(allClickedCards.num):
+			print('OK')
+			js (allClickedCards):
+				allClickedCards.cardElement.classList.add('OK')
+			allRemainingCards := valuesFrom(allRemainingCards, 'butNotFrom', allClickedCards)
+		else:
+			print('Missed')
+			addCssClassTo('theClickedCards', allClickedCards.cardElement)
+			waitSeconds(get(p_SIGNAL_memorizeDuration))
+			DelCssClassFrom('theClickedCards', allClickedCards.cardElement)
+			showBack(allClickedCards)
+
+
+
+#==========================================
+# Main
+#==========================================
+
+var LABEL_gameCourse
+
+var congratMessage
+var restartButton
+
+var SIGNAL_numberOfSeconds
+
+parallel:
+	# Game course
+	#------------
+	sequence: @LABEL_gameCourse
+		removeElt(congratMessage)
+		
+		# The main part of the game
+		gameCourse('SIGNAL_numberOfSeconds')
+		congratMessage := displayNewMessage('Congratulations, you have found all related cards!')
+		
+		awaitForever()
+		
+	# Change of parameters
+	#---------------------
+	while true:
+		SIGNAL_numberOfSeconds := awaitSelectedOptionBeep('#memorizeDuration')
+		
+	# Restart management
+	#----------------------------------------------
+	while true:
+		removeElt(restartButton)
+		restartButton := awaitClickOnNewButton('Restart')
+		restart LABEL_gameCourse
