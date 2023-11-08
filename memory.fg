@@ -54,16 +54,6 @@ def showBack(p_card):
 	js (p_card):
 		p_card.cardElement.src = "img/" + p_card.back
 
-def awaitClickOnNewButton(p_label):
-	var lButton := js (p_label):
-		const lElt = document.createElement('button')
-		lElt.innerHTML = p_label
-		document.body.appendChild(lElt)
-		//~ lElt.scrollIntoView()
-		return lElt
-	awaitClickBeep(lButton)
-	lButton
-
 #==========================================
 # Game Course
 #==========================================
@@ -129,23 +119,45 @@ var LABEL_ChangeDistinctCombination
 var LABEL_gameCourse
 
 var congratMessage
-var restartButton
 
 var numberOfDistinctCombination
 var SIGNAL_numberOfSeconds
 
+# Initial value(s) of parameter(s)
+numberOfDistinctCombination := awaitSelectedOptionBeep('#distinctNumber')
+
 parallel:
 	# Game course
 	#------------
-	sequence: @LABEL_gameCourse
+	parallel || @LABEL_gameCourse
 		removeElt(congratMessage)
+		setCssProperty('restart', 'visibility', 'hidden')
 		
-		# The main part of the game
-		if not isEmpty(numberOfDistinctCombination):
-			gameCourse(numberOfDistinctCombination, 'SIGNAL_numberOfSeconds', 'SIGNAL_clickOnCard')
-			congratMessage := displayNewMessage('Congratulations, you have found all related cards!')
+		resume LABEL_ChangeDistinctCombination
 		
-		awaitForever()
+		# The main part of the game <------
+		gameCourse(numberOfDistinctCombination, 'SIGNAL_numberOfSeconds', 'SIGNAL_clickOnCard')
+		congratMessage := displayNewMessage('Congratulations, you have found all related cards!')
+	||
+		# Change-parameter permission
+		# - - - - - - - - - - - - - - -
+		awaitBip SIGNAL_clickOnCard
+		
+		# As soon as a first card is clicked
+		pause LABEL_ChangeDistinctCombination
+		
+		awaitBeep congratMessage
+		resume LABEL_ChangeDistinctCombination
+	||
+		# Restart management
+		# - - - - - - - - - -
+		awaitBip SIGNAL_clickOnCard
+		
+		setCssProperty('restart', 'visibility', 'visible')
+		awaitClickBeep('#restart')
+		
+		# As soon as the restart button is clicked
+		restart LABEL_gameCourse
 		
 	# Change of parameters
 	#---------------------
@@ -155,17 +167,3 @@ parallel:
 		
 	while true:
 		SIGNAL_numberOfSeconds := awaitSelectedOptionBeep('#memorizeDuration')
-		
-	# Restart management
-	#----------------------------------------------
-	while true:
-		awaitBip SIGNAL_clickOnCard
-		
-		# As soon as a first card is clicked
-		pause LABEL_ChangeDistinctCombination
-		restartButton := awaitClickOnNewButton('Restart')
-		
-		# As soon as the restart button is clicked
-		removeElt(restartButton)
-		resume LABEL_ChangeDistinctCombination
-		restart LABEL_gameCourse
