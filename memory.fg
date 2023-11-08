@@ -9,6 +9,7 @@ def makeCardDeck(p_numberOfCombination):
 	js (p_numberOfCombination):
 		const cardDeck = []
 		const effects = []
+		const faces = []
 		for( let cardNum=1; cardNum<=p_numberOfCombination; cardNum++){
 			let effect
 			while (true) {
@@ -18,9 +19,17 @@ def makeCardDeck(p_numberOfCombination):
 					break
 				}
 			}
-			cardDeck.push({back : "cardBack.svg", face : "card"+ cardNum + "_" + effect + ".jpg", num : cardNum })
+			let face
+			while (true) {
+				face = Math.floor(Math.random() * 8) + 1
+				if (! faces.includes(face)) {
+					faces.push(face)
+					break
+				}
+			}
+			cardDeck.push({back : "cardBack.svg", face : "card"+ face + "_" + effect + ".jpg", num : cardNum })
 			cardDeck.push({back : "cardBack.svg", face : "card0_" + effect + ".svg", num : cardNum })
-			cardDeck.push({back : "cardBack.svg", face : "card"+ cardNum + "_0.jpg", num : cardNum })
+			cardDeck.push({back : "cardBack.svg", face : "card"+ face + "_0.jpg", num : cardNum })
 		}
 		return cardDeck
 
